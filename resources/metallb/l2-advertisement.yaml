@@ -1,0 +1,9 @@
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: kluster-pi-l2-adv
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - first-pool
+
