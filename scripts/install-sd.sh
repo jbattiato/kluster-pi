@@ -86,6 +86,8 @@ mount_partitions() {
     ## Mounting partitions
     local boot_mounted
     local root_mounted
+    boot_mounted="false"
+    root_mounted="false"
     mkdir -p "${BOOT}" "${ROOT}"
     
     PART_1="${SD_DEVICE}1"
@@ -95,12 +97,16 @@ mount_partitions() {
         echo "" >&2
         echo "Cannot mount ${PART_1} on ${BOOT}" >&2
         boot_mounted="false"
+    else
+        boot_mounted="true"
     fi
 
     if ! sudo mount "${PART_2}" "${ROOT}" ; then
         echo "" >&2
         echo "Cannot mount ${PART_2} on ${ROOT}" >&2
         root_mounted="false"
+    else
+        root_mounted="true"
     fi
 
     if [[ "${boot_mounted}" == "false" ]] && [[ "${root_mounted}" == "false" ]]; then
@@ -117,7 +123,7 @@ mount_partitions() {
 
 write_conf() {
     ## Configuring ssh and hostname
-    if findmount "${BOOT}" > /dev/null
+    if findmnt "${BOOT}" > /dev/null
     then
         if [[ ! -f "${BOOT}/sysconf.txt" ]] ; then
             echo "" >&2
@@ -141,7 +147,7 @@ write_conf() {
 
 install_rpiclone() {
     ## Downloading rpi-clone in the root home
-    if findmount "${ROOT}" > /dev/null
+    if findmnt "${ROOT}" > /dev/null
     then
         if [[ ! -d "${ROOT}/root" ]] ; then
             echo "" >&2
