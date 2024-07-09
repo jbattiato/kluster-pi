@@ -42,19 +42,26 @@ mmcblk1     179:0    0  14.8G  0 disk
 `-mmcblk1p2 179:2    0  14.5G  0 part /
 ```
 
+in this case `/dev/sda` is the target disk.
+
 6. Prepare configuration files before the clone:
 
-Replace `root=LABEL=RASPIROOT` with `root=LABEL=ROOT` in the follwoing files:
-
-* `/boot/firmware/cmdline.txt`
-* `/etc/fstab`
-
-and `ROOTPART=LABEL=RASPIROOT` with `ROOTPART=LABEL=ROOT` in the `/etc/default/raspi-firmware` file.
+* replace `root=LABEL=RASPIROOT` with `root=LABEL=ROOT` in the `/boot/firmware/cmdline.txt` file;
+* replace `LABEL=RASPIROOT` with `LABEL=ROOT` in the `/etc/fstab` file;
+* replace `ROOTPART=LABEL=RASPIROOT` with `ROOTPART=LABEL=ROOT` in the `/etc/default/raspi-firmware` file.
 
 Since we are touching the `cmdline.txt` file, we should as well set the `cgroups` required for running containers:
 
 ``` bash
-console=serial0,115200 console=tty1 root=LABEL=ROOT rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait cgroup_memory=1 cgroup_enable=memory cgroup_enable=cpuset
+console=tty0 console=ttyS1,115200 root=LABEL=ROOT rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait cgroup_memory=1 cgroup_enable=memory cgroup_enable=cpuset
+```
+
+Let's add the extra file to persist the changes:
+
+``` bash
+cat <<EOS > /etc/default/raspi-extra-cmdline
+elevator=deadline cgroup_memory=1 cgroup_enable=memory cgroup_enable=cpuset
+EOS
 ```
 
 7. Perform `apt update` before running `rpi-clone`.
