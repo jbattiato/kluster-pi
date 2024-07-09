@@ -42,12 +42,14 @@ mmcblk1     179:0    0  14.8G  0 disk
 `-mmcblk1p2 179:2    0  14.5G  0 part /
 ```
 
-6. Prepare configuration files to be copied:
+6. Prepare configuration files before the clone:
 
-Change `root=LABEL=RASPIROOT` to `root=LABEL=ROOT` in the follwoing files:
+Replace `root=LABEL=RASPIROOT` with `root=LABEL=ROOT` in the follwoing files:
 
 * `/boot/firmware/cmdline.txt`
 * `/etc/fstab`
+
+and `ROOTPART=LABEL=RASPIROOT` with `ROOTPART=LABEL=ROOT` in the `/etc/default/raspi-firmware` file.
 
 Since we are touching the `cmdline.txt` file, we should as well set the `cgroups` required for running containers:
 
