@@ -54,6 +54,7 @@ Follow the procedure in the `docs/` directory:
 
 * [Update Raspberry Firmware #1](https://lemariva.com/blog/2020/12/raspberry-pi-4-ssd-booting-enabled-trim)
 * [Raspberry Firmware Release Notes](https://github.com/raspberrypi/rpi-eeprom)
+* [Boot from USB](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#usb-mass-storage-boot)
 * [Debian for RPi](https://raspi.debian.net/defaults-and-settings/)
 * [Image clone guide](https://notenoughtech.com/raspberry-pi/how-to-boot-raspberry-pi-4-from-usb/)
 * [RPi Clone tool](https://github.com/billw2/rpi-clone)
