@@ -80,8 +80,8 @@ apt update
 
 8. Preparing SSD
 
-There are many ways we can use the SSD to expose the storage as the persistent volume. My recommendation is to reserve the
-remaining disk space to that, leaving the first two partitions to host the `boot` and `root` from the SD.
+There are many ways we can use the SSD to expose the storage as persistent volume in Kubernetes. My recommendation at this stage
+is to dedicate the first two partitions to `boot` and `root` respectively, and to use the remaining disk space as Kubernetes storage.
 
 Before cloning the data with the `rpi-clone` script, the SSD should present the same partition table. To copy the partition table
 we will use `sfdisk` to dump it as follows:
@@ -99,13 +99,11 @@ sfdisk /dev/sda < partition_table_sd
 This allows `rpi-clone` script to automatically perform the right actions for cloning the SD data to the SDD (see point 7 of the
 [README](https://github.com/billw2/rpi-clone?tab=readme-ov-file#7-clone-sd-card-to-usb-disk-with-extra-partitions)).
 
-Now we can manipulate the second partition to add more space, e.g. increasing it with `cfdisk`.
+First, let's increase the size of the `root` partition on the SSD, using `cfdisk`, e.g. increase it to 32 or 64 GB:
 
 ``` bash
 cfdisk /dev/sda
 ```
-
-for example to resize the 16GB for the `root` partition to something bigger: e.g. 64GB.
 
 Then recreate the filsystem with the right label:
 
@@ -121,7 +119,7 @@ Run the `rpi-clone` script:
 ./rpi-clone-master/rpi-clone /dev/sda
 ```
 
-Output (if `rsync` is not installed):
+Output if some packages are missing:
 
 ``` bash
 Command not found: rsync       Package required: rsync
@@ -129,6 +127,8 @@ Command not found: column      Package required: bsdmainutils
 
 Do you want to apt-get install the packages?  (yes/no): yes
 ```
+
+Answer `yes` and proceed.
 
 Then:
 
@@ -191,12 +191,11 @@ lsblk
 Output:
 
 ``` bash
-NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
 sda           8:0    0 931.5G  0 disk
-|-sda1        8:1    0   299M  0 part
-`-sda2        8:2    0 931.2G  0 part /
-mmcblk1     179:0    0  14.9G  0 disk
-|-mmcblk1p1 179:1    0   299M  0 part /boot/firmware
-`-mmcblk1p2 179:2    0  14.6G  0 part
+|-sda1        8:1    0   508M  0 part
+`-sda2        8:2    0    64G  0 part /
+mmcblk1     179:0    0  14.8G  0 disk
+|-mmcblk1p1 179:1    0   508M  0 part /boot/firmware
+`-mmcblk1p2 179:2    0  14.3G  0 part
 ```
-

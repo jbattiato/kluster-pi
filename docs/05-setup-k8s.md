@@ -14,18 +14,22 @@ and replaced by their alternatives when required:
 ## TL;DR
 
 One of the purpose of this prject is to learn by doing. This is why I documented each step
-instead of sharing a single bash script or an ansible playbook.
-But, I also provide scripts to automate some of the steps for the entire procedure in order to
-make it repeatable and fast to deploy for experimenting.
+instead of just sharing a single bash script or an ansible playbook.
+But, I also provide scripts to automate some of the steps for the entire procedure to make
+it repeatable and fast to deploy for experimenting.
 
 ### Select versions
 
-The `resources.list` file contains the version for each desired component when installed with the
-`scripts/deploy-resources.sh` script. Alternatevely, you can use each resource's `install.sh`
-script inside each of them subdirectory: e.g. `resources/calico/install.sh`.
+There are two ways to install resources.
+The first one is using the resource's `install.sh` script (e.g. `resources/calico/install.sh`)
+which has the component's version hard-code inside.
 
-Versions are hardcoded in each resource's `install.sh` file, but are overridden by the
-`resources.list` file when `scripts/deploy-resources.sh resources.list` is executed.
+The second approach is to use the `scripts/deploy-resources.sh` which requests a `resources.list`
+file as argument. The `resources.list` file contains the version for each desired component.
+
+The `scripts/deploy-resources.sh` is basically a wrapper which calls each resource's `install.sh`
+script. Versions in each resource's `install.sh` file will be overridden by the `resources.list`
+file when `scripts/deploy-resources.sh resources.list` is executed.
 
 ### Installing K3S
 
@@ -44,7 +48,7 @@ Usage:
 bash scripts/install-kluster.sh -h hosts.list -r resources.list
 ```
 
-The script will write the TOKEN generated automatically in the hiddent file `.k3s-token` inside the
+The script will write the TOKEN, automatically generated, in the hidden `.k3s-token` file inside the
 root of the project.
 
 Or you can manually perform the following procedure.

@@ -14,7 +14,7 @@ unxz 20210210_raspi_4_buster.img.xz
 
 ## TL;DR
 
-There's a very basic script that perform all the steps required in this chapter,
+There's a very basic script that performs all the steps required in this chapter,
 moreover it does install `rpi-clone` repository into the `root` home of the SD card,
 for later use.
 
@@ -28,7 +28,7 @@ For example:
 ./scripts/install-sd.sh -i distro-images/20210210_raspi_4_buster.img -d /dev/sdd -k ~/.ssh/kluster.pub -h "kluster-pi-01"
 ```
 
-Or you can manually perform the follwoing procedure.
+Or you can manually perform the following procedure.
 
 ## Write Image
 
