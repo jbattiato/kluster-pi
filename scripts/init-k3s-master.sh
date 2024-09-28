@@ -22,6 +22,8 @@ then
     exit 1
 fi
 
+apt install -y curl
+
 K3S_KUBECONFIG_OUTPUT=/root/k3s-kube.config
 
 curl -sfL https://get.k3s.io | \
