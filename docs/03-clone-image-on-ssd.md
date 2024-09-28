@@ -61,7 +61,7 @@ in this case `/dev/sda` is the target disk.
 Since we are touching the `cmdline.txt` file, we should as well set the `cgroups` required for running containers:
 
 ``` bash
-console=tty0 console=ttyS1,115200 root=LABEL=ROOT rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait cgroup_memory=1 cgroup_enable=memory cgroup_enable=cpuset
+console=tty0 console=ttyS1,115200 root=LABEL=ROOT rootfstype=ext4 fsck.repair=yes rootwait elevator=deadline cgroup_memory=1 cgroup_enable=memory cgroup_enable=cpuset
 ```
 
 Let's add the extra file to persist the changes:

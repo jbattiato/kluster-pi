@@ -60,6 +60,7 @@ Follow the procedure in the `docs/` directory:
 * [RPi Clone tool](https://github.com/billw2/rpi-clone)
 * [RPi Boot from SSD](https://jamesachambers.com/new-raspberry-pi-4-bootloader-usb-network-boot-guide/)
 * [Raspberry Pi cheat sheet](https://github.com/LukaszLapaj/raspberry-pi-cheat-sheet)
+* [SSD TRIM](https://www.techtarget.com/searchstorage/definition/TRIM)
 
 ### Kubernetes
 
