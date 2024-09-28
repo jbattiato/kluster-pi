@@ -172,7 +172,7 @@ clean_up() {
     echo ""
     echo "Unmounting partitions..."
     
-    sudo sync
+    sync
 
     if findmnt "${BOOT}" > /dev/null
     then
@@ -187,8 +187,15 @@ clean_up() {
     echo ""
     echo "Removing temp dirs..."
     
-    rmdir "${BOOT}"
-    rmdir "${ROOT}"
+    if [[ -d "${BOOT}" ]]
+    then
+        rmdir "${BOOT}"
+    fi
+    if [[ -d "${ROOT}" ]]
+    then
+        rmdir "${ROOT}"
+    fi
+
     rmdir "${TEMPDIR}"
 }
 
@@ -285,4 +292,3 @@ main() {
 }
 
 main "${@}"
-
