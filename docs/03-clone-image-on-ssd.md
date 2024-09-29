@@ -20,6 +20,9 @@ NOTE: If you haven't used the `install-sd.sh` script, you'll have to manually
 download `rpi-clone` repo, as follows. Otherwise, you can skip the next
 3 steps and continue from the 5th step onwards.
 
+NOTE: There's a script (`scripts/clone-root-to-ssd.sh`) which covers these steps as well, but my recommendation is to first
+gain confidence with the following commands by running them manually a couple of times.
+
 2. On host download `rpi-clone` compressed directory [from official GitHub repo](https://github.com/billw2/rpi-clone).
 
 3. Unzip it:
