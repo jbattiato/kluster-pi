@@ -50,7 +50,7 @@ read_hosts_list(){
 
 group_setup(){
     local node
-    for node in ${NODE_ADDRESSES[@]}
+    for node in "${NODE_ADDRESSES[@]}"
     do
         setup_fstrim "${node}"
     done
@@ -94,8 +94,6 @@ EOS
 }
 
 main(){
-    SCRIPT_DIR=$(realpath "$(dirname "$0")")
-    ROOT_DIR=${SCRIPT_DIR}/../
     unset NODE_ADDRESSES
     declare -a NODE_ADDRESSES
 
@@ -145,7 +143,7 @@ main(){
         group_setup
     else
         # it's an address
-        setup_fstrim ${HOSTS}
+        setup_fstrim "${HOSTS}"
     fi
 }
 
