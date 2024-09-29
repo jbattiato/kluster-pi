@@ -39,6 +39,13 @@ init_master(){
     token=$(generate_token)
     K3S_KUBE_CONFIG="/root/k3s-kube.config"
 
+    # Skip if k3s is already running
+    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ init"'
+    then
+        echo "WARNING: k3s master is already running on: ${address}"
+        return
+    fi
+
     echo ""
     echo "Initialize first k3s master..."
 
@@ -67,12 +74,21 @@ init_master(){
         READY=$(ssh root@"${address}" "kubectl get pods -A 2>/dev/null | wc -l")
         sleep 5
     done
+
+    deploy_calico "${address}"
 }
 
 join_master(){
     local address="${1:-}"
     local token
     token=$(cat ./.k3s-token)
+
+    # Skip if k3s is already running
+    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ init"'
+    then
+        echo "WARNING: k3s master is already running on: ${address}"
+        return
+    fi
 
     echo ""
     echo "Joining k3s master..."
@@ -102,6 +118,13 @@ join_agent(){
     local address="${1:-}"
     local token
     token=$(cat ./.k3s-token)
+
+    # Skip if k3s is already running
+    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ agent"'
+    then
+        echo "WARNING: k3s agent is already running on: ${address}"
+        return
+    fi
 
     echo ""
     echo "Joining k3s agent..."
@@ -247,7 +270,6 @@ main(){
 
     read_hosts_list
     install_master init "${MASTER_1}"
-    deploy_calico "${MASTER_1}"
 
     ## Install k3s for each defined masters except the first one
     if [[ "${#MASTER_ADDRESSES[@]}" -gt 1 ]]
