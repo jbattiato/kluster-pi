@@ -38,6 +38,7 @@ Follow the procedure in the `docs/` directory:
 3. [Clone image on SSD and mount it as `root`](docs/03-clone-image-on-ssd.md)
 4. [Prepare RPi nodes installing and configuring packages](docs/04-preparing-nodes.md)
 5. [Setup cluster installing k3s on each node](docs/05-setup-k8s.md)
+6. [Install additional resources](docs/06-additional-resources.md)
 
 ## Scripts
 
