@@ -49,6 +49,7 @@ Follow the procedure in the `docs/` directory:
 * `join-k3s-agent.sh` - install and deploy a new k3s agent to join the cluster
 * `deploy-resources.sh` - install the specified resources in the `resources.list` file
 * `enable-fstrim.sh` - enable fstrim on target nodes where supported
+* `clone-root-to-ssd.sh` - automate the procedure to clone SD to SSD
 
 ## Sources
 
