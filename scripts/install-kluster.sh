@@ -40,7 +40,7 @@ init_master(){
     K3S_KUBE_CONFIG="/root/k3s-kube.config"
 
     # Skip if k3s is already running
-    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ init"'
+    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ init" >/dev/null'
     then
         echo "WARNING: k3s master is already running on: ${address}"
         return
@@ -84,7 +84,7 @@ join_master(){
     token=$(cat ./.k3s-token)
 
     # Skip if k3s is already running
-    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ init"'
+    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ init" >/dev/null'
     then
         echo "WARNING: k3s master is already running on: ${address}"
         return
@@ -120,7 +120,7 @@ join_agent(){
     token=$(cat ./.k3s-token)
 
     # Skip if k3s is already running
-    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ agent"'
+    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ agent" >/dev/null'
     then
         echo "WARNING: k3s agent is already running on: ${address}"
         return
@@ -285,6 +285,8 @@ main(){
     fi
 
     ## Install k3s for each defined agent
+    # reset behaviour for unset variables
+    set +u
     if [[ "${#AGENT_ADDRESSES[@]}" -gt 0 ]]
     then
         for agent in "${AGENT_ADDRESSES[@]}"
@@ -292,6 +294,8 @@ main(){
             join_agent "${agent}"
         done
     fi
+    # unset variable are considered error again
+    set -u
 
     ## Deploy each resource defined in the ${RESOURCES_FILE} except calico
     sed -i -e 's/^calico/#calico/' "${RESOURCES_FILE}"
