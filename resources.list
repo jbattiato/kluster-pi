@@ -1,4 +1,5 @@
 calico:v3.28.2
 ingress-nginx:v1.11.2
 metallb:v0.14.8
+cert-manager:1.15.3
 #cnpg:1.23.1
