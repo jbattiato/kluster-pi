@@ -47,6 +47,7 @@ Follow the procedure in the `docs/` directory:
 * `join-k3s-master.sh` - install and deploy a new k3s master to join the cluster
 * `join-k3s-agent.sh` - install and deploy a new k3s agent to join the cluster
 * `deploy-resources.sh` - install the specified resources in the `resources.list` file
+* `enable-fstrim.sh` - enable fstrim on target nodes where supported
 
 ## Sources
 
