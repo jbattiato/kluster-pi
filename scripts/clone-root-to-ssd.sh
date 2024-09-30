@@ -98,17 +98,26 @@ copy_partition_table(){
 increase_root_ssd(){
     echo ""
     echo "Increasing root partition..."
-    remote_cmd "echo \",${NEW_SIZE}\" | sfdisk /dev/sda -N2"
+    remote_cmd "echo \",${NEW_SIZE}\" | sfdisk \"${SSD_DEV}\" -N2"
+    echo ""
+    echo "Creating third partition with remaining disk space..."
+    SD_FREE_START=$(remote_cmd "sfdisk -qF \"${ROOT_DEV}\" \
+        | grep -v 'Start' \
+        | awk -F' ' '{print \$1}'")
+    SSD_FREE_START=$(remote_cmd "sfdisk -qF \"${SSD_DEV}\" \
+        | grep -v 'Start' \
+        | awk -F' ' '{if (\$1 != \"${SD_FREE_START}\" ) {print \$1}}'")
+    remote_cmd "echo \"${SSD_FREE_START},+\" | sfdisk \"${SSD_DEV}\" --append -N3"
+    remote_cmd "udevadm settle"
 }
 
 create_fs(){
-    remote_cmd "mkfs.ext4 \"${SSD_DEV}\" -L ROOT"
+    remote_cmd "mkfs.ext4 \"${SSD_DEV}2\" -L ROOT"
+    remote_cmd "udevadm settle"
 }
 
 run_clone_script(){
-    remote_cmd "[[ ! -f ./rpi-clone-master/rpi-clone ]]"
-
-    if [[ "$?" != "0" ]]
+    if remote_cmd "[[ ! -f ./rpi-clone-master/rpi-clone ]]" 
     then
         echo "" >&2
         echo "ERROR: no clone script found in path: ./rpi-clone-master/rpi-clone." >&2
@@ -116,6 +125,8 @@ run_clone_script(){
         exit 2
     fi
 
+    echo ""
+    echo "Remote clone"
     remote_cmd "./rpi-clone-master/rpi-clone \"${SSD_DEV}\""
 }
 
@@ -161,7 +172,7 @@ main(){
     done
 
     echo ""
-    read -rp "Are you 100% sure you want to clone ${ROOT_DEV} into ${SSD_DEV}? [y/N]" ANSWER
+    read -rp "Are you 100% sure you want to clone ${ROOT_DEV} into ${SSD_DEV}? [y/N] " ANSWER
     
     if [[ "${ANSWER}" != "y" ]]
     then
@@ -192,6 +203,14 @@ main(){
     run_clone_script
 
     echo ""
+    read -rp "Do you want to reboot ${ADDRESS}? [y/N]: " ANSWER
+
+    if [[ "${ANSWER}" != "y" ]]
+    then
+        echo "Exiting without rebooting."
+        exit
+    fi
+
     echo "Rebooting ${ADDRESS} now..."
     remote_cmd "systemctl reboot"
 }
