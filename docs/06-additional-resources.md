@@ -4,3 +4,4 @@ This is a separate section to install resources that are not required to make th
 
 * [Container Storage Interfaces](container-storage-interfaces.md)
 * [Certificate Manager](cert-manager.md)
+* [Databases](databases.md)
