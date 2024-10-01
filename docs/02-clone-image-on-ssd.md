@@ -8,6 +8,10 @@ parameter as explained in [the official Raspberry Pi guide](https://www.raspberr
 At the time of writing this, Debian for raspberry does not have the `vcgencmd` in its repository,
 and I had not yet time to workaround on this.
 
+<p align="center">
+  <img src="images/kluster_00.jpg" width="50%" alt="hardware 1">
+</p>
+
 0. Hardware setup
 
 We assume that all Raspberry Pis are up, and running the new Debian image from the SD.
