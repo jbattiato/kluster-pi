@@ -22,7 +22,7 @@ then
     exit 1
 fi
 
-apt install -y curl
+apt-get install -y curl
 
 K3S_KUBECONFIG_OUTPUT=/root/k3s-kube.config
 

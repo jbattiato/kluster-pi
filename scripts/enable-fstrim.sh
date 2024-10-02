@@ -45,7 +45,7 @@ read_hosts_list(){
             NODE_ADDRESSES+=( "${node_address}" )
             eval "${node}"="${node_address}"
         fi
-    done < <(grep "^.*_" "${HOSTS}" | tr -d '"')
+    done < <(grep "^[MA].*_" "${HOSTS}" | tr -d '"')
 }
 
 group_setup(){
@@ -61,7 +61,7 @@ setup_fstrim(){
     node="${1}"
 
     # Remote install required packages
-    ssh root@"${node}" "apt install -y usbutils bc sg3-utils lsscsi"
+    ssh root@"${node}" "apt-get install -y usbutils bc sg3-utils lsscsi"
 
     ssh -Tq root@"${node}" <<'EOS'
     # Retrieve values and set variables
@@ -99,17 +99,17 @@ main(){
 
     if [[ $# -eq 0 ]]
     then
-        echo "ERROR: no argument passed." >&2
+        echo "ERROR: missing argument(s)." >&2
         echo "" >&2
         usage
     fi
 
     if ! getopt -T > /dev/null; then
         # GNU enhanced getopt is available
-        parsed_opts=$(getopt -o h:r: -l "hosts:remote:" -- "$@") || usage
+        parsed_opts=$(getopt -o h: -l "hosts:" -- "$@") || usage
     else
         # Original getopt is available
-        parsed_opts=$(getopt h:r: "$@") || usage
+        parsed_opts=$(getopt h: "$@") || usage
     fi
 
     eval "set -- $parsed_opts"

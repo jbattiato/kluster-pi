@@ -42,8 +42,8 @@ check_block_dev(){
     declare -a DEVICES
     local dev
 
-    ROOT_DEV=$(remote_cmd "lsblk -pnro NAME,MOUNTPOINTS | awk -F' ' '{if (\$2 == \"/\") {print \$1}}'")
-    DEVICES=( $(remote_cmd "lsblk -pnro NAME,TYPE | awk -F' ' '{if (\$2 == \"disk\") {print \$1}}'") )
+    ROOT_DEV="$(remote_cmd "lsblk -pnro NAME,MOUNTPOINTS | awk -F' ' '{if (\$2 == \"/\") {print \$1}}'")"
+    DEVICES=( "$(remote_cmd "lsblk -pnro NAME,TYPE | awk -F' ' '{if (\$2 == \"disk\") {print \$1}}'")" )
 
     echo ""
     echo "Root file system is currently mounted on: "

@@ -22,7 +22,7 @@ then
     exit 1
 fi
 
-apt install -y curl
+apt-get install -y curl
 
 curl -sfL https://get.k3s.io | \
   K3S_TOKEN=${1} \
