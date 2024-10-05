@@ -34,7 +34,7 @@ remote_cmd(){
     local command
     command="${1}"
 
-    ssh -q root@"${ADDRESS}" "${command}"
+    ssh -Tq root@"${ADDRESS}" "${command}"
 }
 
 check_block_dev(){
