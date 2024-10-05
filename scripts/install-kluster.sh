@@ -24,7 +24,7 @@ if [[ "${TRACE:-0}" == "1" ]]; then
 fi
 
 usage(){
-    echo "Usage: $0 -h <hosts-list-file> [-r <resources-list-file>] [--no-calico]" >&2
+    echo "Usage: $0 -h <hosts-list-file> [-r <resources-list-file>] [--no-calico|-n]" >&2
     echo "" >&2
     exit 1
 }
@@ -36,11 +36,13 @@ generate_token(){
 init_master(){
     local address="${1:-}"
     local token
+    local arg
+    arg=""
     token=$(generate_token)
     K3S_KUBE_CONFIG="/root/k3s-kube.config"
 
     # Skip if k3s is already running
-    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ init" >/dev/null'
+    if ssh -Tq root@"${address}" 'ps axf | grep "[k]3s\ init" >/dev/null'
     then
         echo "WARNING: k3s master is already running on: ${address}"
         return
@@ -50,10 +52,17 @@ init_master(){
     echo "Initialize first k3s master..."
 
     ## Copy init script to remote server
-    scp scripts/init-k3s-master.sh root@"${address}":/root/
+    scp scripts/install-k3s-master.sh root@"${address}":/root/
+
+    ## Set calico argument to pass to k3s installer
+    if [[ "${CALICO}" == "false" ]]
+    then
+        arg="--no-calico"
+    fi
 
     ## Execute init script remotely
-    ssh root@"${address}" "bash init-k3s-master.sh ${token}"
+    ssh -Tq root@"${address}" "K3S_KUBE_CONFIG=${K3S_KUBE_CONFIG} \
+        bash install-k3s-master.sh -t ${token} ${arg} init"
 
     ## Copy the latest ${K3S_KUBE_CONFIG} in local
     scp root@"${address}":"${K3S_KUBE_CONFIG}" "${KUBECONFIG}"
@@ -68,36 +77,41 @@ init_master(){
     until [[ "${READY}" -gt 1 ]]
     do
         sleep 5
-        READY=$(ssh root@"${address}" "kubectl get pods -A 2>/dev/null | wc -l")
+        READY=$(ssh -Tq root@"${address}" "kubectl get pods -A 2>/dev/null | wc -l")
     done
 
-    ## Deploy calico
-    if [[ "${CALICO}" == "true" ]]
-    then
-        deploy_calico "${address}"
-    fi
+    deploy_calico "${address}"
 }
 
 join_master(){
     local address="${1:-}"
     local token
+    local arg
+    arg=""
     token=$(cat ./.k3s-token)
 
     # Skip if k3s is already running
-    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ init" >/dev/null'
+    if ssh -Tq root@"${address}" 'ps axf | grep "[k]3s\ init" >/dev/null'
     then
         echo "WARNING: k3s master is already running on: ${address}"
         return
+    fi
+
+    ## Set calico argument to pass to k3s installer
+    if [[ "${CALICO}" == "false" ]]
+    then
+        arg="--no-calico"
     fi
 
     echo ""
     echo "Joining k3s master..."
 
     ## Copy join script to remote server
-    scp scripts/join-k3s-master.sh root@"${address}":/root/
+    scp scripts/install-k3s-master.sh root@"${address}":/root/
 
     ## Execute join script remotely
-    ssh root@"${address}" "bash join-k3s-master.sh ${token} ${MASTER_1}"
+    ssh -Tq root@"${address}" "K3S_KUBE_CONFIG=${K3S_KUBE_CONFIG} \
+        bash install-k3s-master.sh -t ${token} -m ${MASTER_1} ${arg} join"
 }
 
 install_master(){
@@ -120,7 +134,7 @@ join_agent(){
     token=$(cat ./.k3s-token)
 
     # Skip if k3s is already running
-    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ agent" >/dev/null'
+    if ssh -Tq root@"${address}" 'ps axf | grep "[k]3s\ agent" >/dev/null'
     then
         echo "WARNING: k3s agent is already running on: ${address}"
         return
@@ -133,7 +147,7 @@ join_agent(){
     scp scripts/join-k3s-agent.sh root@"${address}":/root/
 
     ## Execute join script remotely
-    ssh root@"${address}" "bash join-k3s-agent.sh ${token} ${MASTER_1}"
+    ssh -Tq root@"${address}" "bash join-k3s-agent.sh -t ${token} -m ${MASTER_1}"
 }
 
 install_packages(){
@@ -181,6 +195,11 @@ deploy_calico(){
     local address=${1}
     CALICO_VERSION=""
 
+    if [[ "${CALICO}" == "false" ]]
+    then
+        return
+    fi
+
     if [[ -f "${RESOURCES_FILE:-}" ]]
     then
         local version
@@ -190,7 +209,7 @@ deploy_calico(){
     fi
 
     ## Deploy calico
-    bash "${SCRIPT_DIR}"/deploy-resources.sh -h "${MASTER_1}" -r calico "${CALICO_VERSION}"
+    bash "${SCRIPT_DIR}"/deploy-resources.sh -h "${MASTER_1}" -r calico ${CALICO_VERSION}
 }
 
 main(){
@@ -204,17 +223,17 @@ main(){
 
     if [[ $# -eq 0 ]]
     then
-        echo "ERROR: no hosts file passed." >&2
+        echo "ERROR: missing -h arguments." >&2
         echo "" >&2
         usage
     fi
 
     if ! getopt -T > /dev/null; then
         # GNU enhanced getopt is available
-        parsed_opts=$(getopt -o h:r: -l "hosts:resources:" -- "$@") || usage
+        parsed_opts=$(getopt -o h:r:n -l "hosts:,resources:,no-calico" -- "$@") || usage
     else
         # Original getopt is available
-        parsed_opts=$(getopt h:r: "$@") || usage
+        parsed_opts=$(getopt h:r:n "$@") || usage
     fi
 
     eval "set -- $parsed_opts"
@@ -232,7 +251,7 @@ main(){
                 RESOURCES_FILE="${1}"
                 shift
                 ;;
-            --no-calico)
+            -n | --no-calico)
                 CALICO=false
                 shift
                 ;;

@@ -61,7 +61,7 @@ setup_fstrim(){
     node="${1}"
 
     # Remote install required packages
-    ssh root@"${node}" "apt-get install -y usbutils bc sg3-utils lsscsi"
+    ssh -Tq root@"${node}" "apt-get install -y usbutils bc sg3-utils lsscsi"
 
     ssh -Tq root@"${node}" <<'EOS'
     # Retrieve values and set variables

@@ -50,7 +50,7 @@ deploy_resource(){
     if [[ ! -f "${TARGET_SCRIPT}" ]]
     then
         echo "ERROR: wrong resource name: ${1}" >&2
-        echo " HINT: resource name is the same name of each directory in $(realpath "${RESOURCES_DIR}") path" >&2
+        echo " HINT: resource name is the directory name in $(realpath "${RESOURCES_DIR}") path" >&2
         echo "" >&2
         usage
     fi
@@ -77,7 +77,7 @@ main(){
 
     if ! getopt -T > /dev/null; then
         # GNU enhanced getopt is available
-        parsed_opts=$(getopt -o r:h:v: -l "reources:host:version" -- "$@") || usage
+        parsed_opts=$(getopt -o r:h:v: -l "reources:,host:,version" -- "$@") || usage
     else
         # Original getopt is available
         parsed_opts=$(getopt r:h:v: "$@") || usage
@@ -128,7 +128,7 @@ main(){
         group_deploy
     else
         # it's a single resource
-        deploy_resource "${RESOURCES:-}" "${VERSION:-}"
+        deploy_resource "${RESOURCES}" "${VERSION:-}"
     fi
 
 }

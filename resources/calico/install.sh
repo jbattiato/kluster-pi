@@ -31,7 +31,6 @@ usage(){
     exit 1
 }
 
-
 BASE_DIR=$(realpath "$(dirname "$0")")
 MASTER="${MASTER:-}"
 
@@ -46,7 +45,7 @@ then
     usage
 fi
 
-if ssh root@"${MASTER}" "kubectl get ns calico-apiserver 2>&1 >/dev/null"
+if ssh -Tq root@"${MASTER}" "kubectl get ns calico-apiserver >/dev/null 2>&1"
 then
     echo "" >&2
     echo "ATTENTION: Calico is already installed." >&2
@@ -57,13 +56,13 @@ else
     echo "Installing calico..."
 
     ## Create calico dir in the remote node
-    ssh root@"${MASTER}" "mkdir -p calico"
+    ssh -Tq root@"${MASTER}" "mkdir -p calico"
 
     ## Copy the required manifest in the remotely created calico directory
     scp "${BASE_DIR}/custom-resources.yaml" root@"${MASTER}":/root/calico/
 
     ## Install calico and wait until its apiserver is available before proceeding
-    ssh root@"${MASTER}" <<EOS
+    ssh -Tq root@"${MASTER}" <<EOS
 kubectl create -f "https://raw.githubusercontent.com/projectcalico/calico/${VERSION}/manifests/tigera-operator.yaml"
 kubectl create -f "/root/calico/custom-resources.yaml"
 until kubectl get ns calico-apiserver 2>/dev/null
