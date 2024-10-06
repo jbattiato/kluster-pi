@@ -30,12 +30,23 @@ This script applies the steps described in the [Clone SD image into SSD and moun
 
 This script applies the steps described in the [Setup cluster installing k3s on each node](../docs/04-setup-k8s.md) procedure.
 
-It's basically a complex wrapper to call other scripts to setup the entire k3s cluster following the right order and respecting the right prerequisites.
-Internally will call in order:
+It requires a host file that must contain a list of the desired masters and agents. The file format must be like follows:
+
+``` bash
+MASTER_1="<ip_address>"
+MASTER_2="<ip_address>"
+MASTER_3="<ip_address>"
+AGENT_1="<ip_address>"
+#AGENT_2="<ip_address>"
+# more agents if needed
+```
+
+This script is basically a complex wrapper which calls other scripts to setup the entire k3s cluster following the proper order and respecting the right prerequisites.
+Internally it will call, in order:
 
 1. `install-k3s-master.sh` to init the first master
 2. `deploy-resources.sh` to install calico
-3. `install-k3s-master.sh` to join the other masters
+3. `install-k3s-master.sh` to join other masters (if defined)
 4. `join-k3s-agents.sh` to join agents (if defined)
 5. `deploy-resources.sh` to deploy the rest of the resources defined in the resources file
 
@@ -43,9 +54,18 @@ Internally will call in order:
 
 `deploy-resources.sh`
 
-This script is designed as a wrapper to call the external `install.sh` script from each resource defined by the `-r` option.
+This script is designed as a wrapper which calls the `install.sh` script from each resource's directory. The selected resource is passed to the script through the `-r` option.
 The `-r` option either accepts a single resource name or a file containing a list of resources with their version.
-An example of the resource file is below:
+
+The resource file must respect the format:
+
+```
+resource-name:version
+```
+
+where the `resource-name` must match the directory name in the `resource/` directory for that specific resource.
+
+Below is an example:
 
 ```
 #calico:v3.28.2
@@ -60,7 +80,7 @@ NOTE: `calico` is commented out because it must be installed only during the k3s
 
 Each resource name matches the corresponding directory in the [`resources`](../resources) directory. Each resource's directory must contain an `install.sh` script with all the required commands to deploy it in the Kuberentes cluster.
 
-In case of `calico` its `install.sh` script requires additional parameters to properly working. One is the address/hostname of the first k3s master installed, where to deploy the `calico` operator to start the CNI.
+In case of `calico` its `install.sh` script requires additional parameters to properly work. One is the address/hostname of the first k3s master installed, which is the node where to deploy the `calico` operator to start the CNI for the entire cluster.
 
 ## K3S master setup
 
@@ -82,6 +102,5 @@ This script is the main wrapper of the k3s script provided by rancher to deploy 
 `enable-fstrim.sh`
 
 This script applies the steps described in the [Prepare RPi nodes installing and configuring packages](docs/03-preparing-nodes.md) procedure for enabling the ssd fstrim on each RPi node.
-
 
 

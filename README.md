@@ -80,7 +80,7 @@ Follow the procedure in the `docs/` directory:
 1. `install-sd.sh` - to write distro image into SD card, add SSH key, configure hostname, download `rpi-clone` repo inside `/root`
 2. `clone-root-to-ssd.sh` - to automate the procedure to clone SD to SSD
 3. `install-kluster.sh` - to install k3s and deploy required resources on the cluster following the correct procedure
-4. `deploy-resources.sh` (optional) - to deploy the specified kubernetes resource(s) from a list or a single name
+4. `deploy-resources.sh` (optional) - to deploy the specified kubernetes resource(s) from a list or just one resource
 
 ### Others
 
