@@ -35,13 +35,13 @@ install_dependencies(){
 
 install_k3s(){
     curl -sfL https://get.k3s.io | \
-      K3S_TOKEN=${TOKEN} \
-      K3S_URL=https://${SERVER}:6443 \
-      sh -
+        K3S_TOKEN="${TOKEN}" \
+        K3S_URL="https://${ADDRESS}:6443" \
+        sh -
 }
 
 main(){
-    if [[ $# -eq 0 ]]
+    if [[ "$#" -eq 0 ]]
     then
         echo "ERROR: missing arguments." >&2
         echo "" >&2
@@ -50,7 +50,7 @@ main(){
 
     if ! getopt -T > /dev/null; then
         # GNU enhanced getopt is available
-        parsed_opts=$(getopt -o t:m: -l "token:,master" -- "$@") || usage
+        parsed_opts=$(getopt -o t:m: -l "token:,master:" -- "$@") || usage
     else
         # Original getopt is available
         parsed_opts=$(getopt t:m: "$@") || usage
@@ -68,6 +68,7 @@ main(){
                 ;;
             -m | --master)
                 # Set master address
+                shift
                 ADDRESS="${1}"
                 shift
                 ;;
@@ -79,9 +80,17 @@ main(){
     done
 
     # Check for configuration file
-    if [[ -z ${TOKEN:-} ]]
+    if [[ -z "${TOKEN:-}" ]]
     then
         echo "ERROR: token is empty!" >&2
+        echo "" >&2
+        usage
+    fi
+
+    # Check for master address
+    if [[ -z "${ADDRESS:-}" ]]
+    then
+        echo "ERROR: master address is empty!" >&2
         echo "" >&2
         usage
     fi
@@ -94,3 +103,4 @@ main(){
 }
 
 main "${@}"
+

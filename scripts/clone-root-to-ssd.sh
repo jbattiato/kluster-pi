@@ -162,13 +162,23 @@ main(){
     while true
     do
         read -rp "- target SSD for clone (e.g. /dev/sda): " SSD_DEV
-        remote_cmd "[[ ! -b \"${SSD_DEV}\" ]]" && echo -e "\ntarget SSD is not a block device: ${SSD_DEV}" || break
+        if remote_cmd "[[ ! -b \"${SSD_DEV}\" ]]"
+        then
+            echo -e "\ntarget SSD is not a block device: ${SSD_DEV}"
+        else
+            break
+        fi
     done
 
     while true
     do
         read -rp "- current ROOT block device (e.g. /dev/mmcblk1): " ROOT_DEV
-        remote_cmd "[[ ! -b \"${ROOT_DEV}\" ]]" && echo -e "\ntarget ROOT is not a block device: ${SSD_DEV}" || break
+        if remote_cmd "[[ ! -b \"${ROOT_DEV}\" ]]"
+        then
+            echo -e "\ntarget ROOT is not a block device: ${ROOT_DEV}"
+        else
+            break
+        fi
     done
 
     echo ""

@@ -156,7 +156,7 @@ install_iptables(){
     then
         for master in "${MASTER_ADDRESSES[@]}"
         do
-            ssh root@"${master}" "apt-get install -y iptables"
+            ssh -Tq root@"${master}" "apt-get install -y iptables"
         done
     fi
 
@@ -167,7 +167,7 @@ install_iptables(){
     then
         for agent in "${AGENT_ADDRESSES[@]}"
         do
-            ssh root@"${agent}" "apt-get install -y iptables"
+            ssh -Tq root@"${agent}" "apt-get install -y iptables"
         done
     fi
     # unset variable are considered error again

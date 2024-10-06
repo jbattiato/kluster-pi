@@ -37,15 +37,15 @@ wait_master(){
     ## Wait before exiting to ensure ${K3S_KUBECONFIG_OUTPUT} file exists and is the latest
     if [[ -f ${K3S_KUBECONFIG_OUTPUT} ]]
     then
-        OLD_CONFIG_TIME=$(ls --full-time --time-style=+%Y%m%d%H%M%S ${K3S_KUBECONFIG_OUTPUT} | awk '{print $6}')
+        OLD_CONFIG_TIME=$(ls --full-time --time-style=+%Y%m%d%H%M%S "${K3S_KUBECONFIG_OUTPUT}" | awk '{print $6}')
         NEW_CONFIG_TIME="${OLD_CONFIG_TIME}"
         while [[ "${NEW_CONFIG_TIME}" == "${OLD_CONFIG_TIME}" ]]
         do
             sleep 3
-            NEW_CONFIG_TIME=$(ls --full-time --time-style=+%Y%m%d%H%M%S ${K3S_KUBECONFIG_OUTPUT} | awk '{print $6}')
+            NEW_CONFIG_TIME=$(ls --full-time --time-style=+%Y%m%d%H%M%S "${K3S_KUBECONFIG_OUTPUT}" | awk '{print $6}')
         done
     else
-        until [[ ! -f ${K3S_KUBECONFIG_OUTPUT} ]]
+        until [[ ! -f "${K3S_KUBECONFIG_OUTPUT}" ]]
         do
             sleep 3
         done
@@ -54,9 +54,9 @@ wait_master(){
 
 install_k3s(){
     curl -sfL https://get.k3s.io | \
-      K3S_TOKEN=${TOKEN} \
-      K3S_KUBECONFIG_OUTPUT=${K3S_KUBECONFIG_OUTPUT} \
-      INSTALL_K3S_EXEC="server ${ARGS[@]}" sh -
+      K3S_TOKEN="${TOKEN}" \
+      K3S_KUBECONFIG_OUTPUT="${K3S_KUBECONFIG_OUTPUT}" \
+      INSTALL_K3S_EXEC="server ${ARGS[*]}" sh -
 }
 
 main(){
@@ -115,7 +115,7 @@ main(){
     done
 
     # Check for configuration file
-    if [[ -z ${TOKEN:-} ]]
+    if [[ -z "${TOKEN:-}" ]]
     then
         echo "ERROR: token is empty!" >&2
         echo "" >&2
@@ -138,7 +138,7 @@ main(){
             ;;
         join)
             # Check for master address
-            if [[ -z ${ADDRESS:-} ]]
+            if [[ -z "${ADDRESS:-}" ]]
             then
                 echo "ERROR: master address is empty!" >&2
                 echo "" >&2
