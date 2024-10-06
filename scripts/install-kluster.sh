@@ -150,6 +150,31 @@ join_agent(){
     ssh -Tq root@"${address}" "bash join-k3s-agent.sh -t ${token} -m ${MASTER_1}"
 }
 
+install_iptables(){
+    ## Install iptables in each defined master
+    if [[ "${#MASTER_ADDRESSES[@]}" -gt 1 ]]
+    then
+        for master in "${MASTER_ADDRESSES[@]}"
+        do
+            ssh root@"${master}" "apt-get install -y iptables"
+        done
+    fi
+
+    ## Install iptables in each defined agent
+    # reset behaviour for unset variables
+    set +u
+    if [[ "${#AGENT_ADDRESSES[@]}" -gt 0 ]]
+    then
+        for agent in "${AGENT_ADDRESSES[@]}"
+        do
+            ssh root@"${agent}" "apt-get install -y iptables"
+        done
+    fi
+    # unset variable are considered error again
+    set -u
+}
+
+
 install_packages(){
     ## Based on the list of required packages
     ## install them in each of the target node
@@ -207,6 +232,9 @@ deploy_calico(){
         IFS=':' read -r _ version < <(grep calico "${RESOURCES_FILE}")
         CALICO_VERSION="-v ${version}"
     fi
+
+    # Install iptables as dependency on all nodes
+    install_iptables
 
     ## Deploy calico
     bash "${SCRIPT_DIR}"/deploy-resources.sh -h "${MASTER_1}" -r calico ${CALICO_VERSION}
