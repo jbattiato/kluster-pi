@@ -73,17 +73,18 @@ Follow the procedure in the `docs/` directory:
 
 ## Scripts
 
+[Scripts Overview](scripts/README.md)
+
 ### Procedural
 
 1. `install-sd.sh` - to write distro image into SD card, add SSH key, configure hostname, download `rpi-clone` repo inside `/root`
 2. `clone-root-to-ssd.sh` - to automate the procedure to clone SD to SSD
 3. `install-kluster.sh` - to install k3s and deploy required resources on the cluster following the correct procedure
-4. `deploy-resources.sh` (optional) - to deploy the specified resources from the `resources.list` file
+4. `deploy-resources.sh` (optional) - to deploy the specified kubernetes resource(s) from a list or just one resource
 
 ### Others
 
-* `init-k3s-master.sh` - to install and deploy the first k3s master
-* `join-k3s-master.sh` - to install and deploy a new k3s master to join the cluster
+* `intall-k3s-master.sh` - to install and deploy the k3s master (init and join)
 * `join-k3s-agent.sh` - to install and deploy a new k3s agent to join the cluster
 * `enable-fstrim.sh` - to enable fstrim on target nodes where supported
 

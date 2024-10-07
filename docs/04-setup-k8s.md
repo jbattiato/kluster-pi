@@ -24,12 +24,37 @@ There are two ways to install resources.
 The first one is using the resource's `install.sh` script (e.g. `resources/calico/install.sh`)
 which has the component's version hard-code inside.
 
-The second approach is to use the `scripts/deploy-resources.sh` which requests a `resources.list`
-file as argument. The `resources.list` file contains the version for each desired component.
+The second approach is to use the `scripts/deploy-resources.sh` script, which accepts a single
+resource name or a `resources.list` file. The `resources.list` file contains the version for each
+desired component.
 
 The `scripts/deploy-resources.sh` is basically a wrapper which calls each resource's `install.sh`
-script. Versions in each resource's `install.sh` file will be overridden by the `resources.list`
-file when `scripts/deploy-resources.sh resources.list` is executed.
+script. Versions in each resource's `install.sh` file will be overridden by the `-r resources.list`
+file or by the `-v <version>` options.
+
+Example:
+
+``` bash
+bash scripts/deploy-resources.sh -r <resources.list>
+```
+
+Or:
+
+``` bash
+bash scripts/deploy-resources.sh -r <resource_name> -v <version>
+```
+
+To install `calico` the script accepts the address/hostname of the first master:
+
+``` bash
+bash scripts/deploy-resources.sh -v v3.28.2 -h kluster-pi-01 -r calico
+```
+
+Or:
+
+``` bash
+bash scripts/deploy-resources.sh -h kluster-pi-01 -r <resources.list>
+```
 
 ### Installing K3S
 
@@ -38,7 +63,7 @@ on Raspberry Pis. It takes care of all the steps in this chapter; more precisely
 
 1. install the first k3s master
 2. deploy calico
-3. join other masters
+3. join other masters (if any)
 4. join agents (if any)
 5. deploy desired resources (if defined)
 

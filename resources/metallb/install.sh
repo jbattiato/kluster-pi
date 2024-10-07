@@ -20,7 +20,7 @@ BASE_DIR=$(realpath "$(dirname "$0")")
 VERSION=${VERSION:-"v0.13.11"}
 
 kubectl apply -f "https://raw.githubusercontent.com/metallb/metallb/${VERSION}/config/manifests/metallb-native.yaml"
-ENDPOINT=$(kubectl get -n metallb-system endpoints -o jsonpath='{.items[].subsets[].addresses[].ip}' 2>/dev/null)
+ENDPOINT=""
 until [[ -n ${ENDPOINT:-} ]]  
 do
     sleep 3

@@ -24,7 +24,7 @@ if [[ "${TRACE:-0}" == "1" ]]; then
 fi
 
 usage(){
-    echo "Usage: $0 -h <hosts-list-file> -r <resources-list-file>" >&2
+    echo "Usage: $0 -h <hosts-list-file> [-r <resources-list-file>] [--no-calico|-n]" >&2
     echo "" >&2
     exit 1
 }
@@ -36,11 +36,13 @@ generate_token(){
 init_master(){
     local address="${1:-}"
     local token
+    local arg
+    arg=""
     token=$(generate_token)
     K3S_KUBE_CONFIG="/root/k3s-kube.config"
 
     # Skip if k3s is already running
-    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ init" >/dev/null'
+    if ssh -Tq root@"${address}" 'ps axf | grep "[k]3s\ init" >/dev/null'
     then
         echo "WARNING: k3s master is already running on: ${address}"
         return
@@ -50,10 +52,17 @@ init_master(){
     echo "Initialize first k3s master..."
 
     ## Copy init script to remote server
-    scp scripts/init-k3s-master.sh root@"${address}":/root/
+    scp scripts/install-k3s-master.sh root@"${address}":/root/
+
+    ## Set calico argument to pass to k3s installer
+    if [[ "${CALICO}" == "false" ]]
+    then
+        arg="--no-calico"
+    fi
 
     ## Execute init script remotely
-    ssh root@"${address}" "bash init-k3s-master.sh ${token}"
+    ssh -Tq root@"${address}" "K3S_KUBE_CONFIG=${K3S_KUBE_CONFIG} \
+        bash install-k3s-master.sh -t ${token} ${arg} init"
 
     ## Copy the latest ${K3S_KUBE_CONFIG} in local
     scp root@"${address}":"${K3S_KUBE_CONFIG}" "${KUBECONFIG}"
@@ -63,16 +72,12 @@ init_master(){
     ## Save token
     echo "${token}" > ./.k3s-token
 
-    ## Wait a bit
-    sleep 5
-
     ## Wait until the apiserver respond
-    READY=$(ssh root@"${address}" "kubectl get pods -A 2>/dev/null | wc -l")
-
+    READY=0
     until [[ "${READY}" -gt 1 ]]
     do
-        READY=$(ssh root@"${address}" "kubectl get pods -A 2>/dev/null | wc -l")
         sleep 5
+        READY=$(ssh -Tq root@"${address}" "kubectl get pods -A 2>/dev/null | wc -l")
     done
 
     deploy_calico "${address}"
@@ -81,23 +86,32 @@ init_master(){
 join_master(){
     local address="${1:-}"
     local token
+    local arg
+    arg=""
     token=$(cat ./.k3s-token)
 
     # Skip if k3s is already running
-    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ init" >/dev/null'
+    if ssh -Tq root@"${address}" 'ps axf | grep "[k]3s\ init" >/dev/null'
     then
         echo "WARNING: k3s master is already running on: ${address}"
         return
+    fi
+
+    ## Set calico argument to pass to k3s installer
+    if [[ "${CALICO}" == "false" ]]
+    then
+        arg="--no-calico"
     fi
 
     echo ""
     echo "Joining k3s master..."
 
     ## Copy join script to remote server
-    scp scripts/join-k3s-master.sh root@"${address}":/root/
+    scp scripts/install-k3s-master.sh root@"${address}":/root/
 
     ## Execute join script remotely
-    ssh root@"${address}" "bash join-k3s-master.sh ${token} ${MASTER_1}"
+    ssh -Tq root@"${address}" "K3S_KUBE_CONFIG=${K3S_KUBE_CONFIG} \
+        bash install-k3s-master.sh -t ${token} -m ${MASTER_1} ${arg} join"
 }
 
 install_master(){
@@ -120,7 +134,7 @@ join_agent(){
     token=$(cat ./.k3s-token)
 
     # Skip if k3s is already running
-    if ssh -q root@"${address}" 'ps axf | grep "[k]3s\ agent" >/dev/null'
+    if ssh -Tq root@"${address}" 'ps axf | grep "[k]3s\ agent" >/dev/null'
     then
         echo "WARNING: k3s agent is already running on: ${address}"
         return
@@ -133,8 +147,33 @@ join_agent(){
     scp scripts/join-k3s-agent.sh root@"${address}":/root/
 
     ## Execute join script remotely
-    ssh root@"${address}" "bash join-k3s-agent.sh ${token} ${MASTER_1}"
+    ssh -Tq root@"${address}" "bash join-k3s-agent.sh -t ${token} -m ${MASTER_1}"
 }
+
+install_iptables(){
+    ## Install iptables in each defined master
+    if [[ "${#MASTER_ADDRESSES[@]}" -gt 1 ]]
+    then
+        for master in "${MASTER_ADDRESSES[@]}"
+        do
+            ssh -Tq root@"${master}" "apt-get install -y iptables"
+        done
+    fi
+
+    ## Install iptables in each defined agent
+    # reset behaviour for unset variables
+    set +u
+    if [[ "${#AGENT_ADDRESSES[@]}" -gt 0 ]]
+    then
+        for agent in "${AGENT_ADDRESSES[@]}"
+        do
+            ssh -Tq root@"${agent}" "apt-get install -y iptables"
+        done
+    fi
+    # unset variable are considered error again
+    set -u
+}
+
 
 install_packages(){
     ## Based on the list of required packages
@@ -179,37 +218,32 @@ read_hosts_list(){
 
 deploy_calico(){
     local address=${1}
-    local version
+    CALICO_VERSION=""
 
-    ## Get calico version from ${RESOURCES_FILE}
-    IFS=':' read -r _ version < <(grep calico "${RESOURCES_FILE}")
+    if [[ "${CALICO}" == "false" ]]
+    then
+        return
+    fi
 
-    echo ""
-    echo "Installing calico..."
+    if [[ -f "${RESOURCES_FILE:-}" ]]
+    then
+        local version
+        ## Get calico version from ${RESOURCES_FILE}
+        IFS=':' read -r _ version < <(grep calico "${RESOURCES_FILE}")
+        CALICO_VERSION="-v ${version}"
+    fi
 
-    ## Create calico dir in the remote node
-    ssh root@"${address}" "mkdir -p calico"
+    # Install iptables as dependency on all nodes
+    install_iptables
 
-    ## Copy the required script and manifest in the previously created calico directory
-    scp "${RESOURCES_DIR}"/calico/{install.sh,custom-resources.yaml} root@"${address}":/root/calico/
-
-    ## Deploy calico and wait until its apiserver is available before proceeding
-    ssh root@"${address}" "
-VERSION=${version:-} bash calico/install.sh \
-&& until kubectl get ns calico-apiserver 2>/dev/null
-do
-    sleep 3
-done \
-&& kubectl wait -n calico-apiserver deployment/calico-apiserver --for condition=available --timeout=300s
-"
+    ## Deploy calico
+    bash "${SCRIPT_DIR}"/deploy-resources.sh -h "${MASTER_1}" -r calico ${CALICO_VERSION}
 }
 
 main(){
     SCRIPT_DIR=$(realpath "$(dirname "$0")")
-    ROOT_DIR=${SCRIPT_DIR}/../
-    RESOURCES_DIR=${ROOT_DIR}/resources
-    KUBECONFIG=${HOME}/.kube/kluster-pi-config
-    RESOURCES_FILE=${ROOT_DIR}/resources
+    KUBECONFIG="${HOME}/.kube/kluster-pi-config"
+    CALICO="true"
     unset MASTER_ADDRESSES
     unset AGENT_ADDRESSES
     declare -a MASTER_ADDRESSES
@@ -217,17 +251,17 @@ main(){
 
     if [[ $# -eq 0 ]]
     then
-        echo "ERROR: no hosts file passed." >&2
+        echo "ERROR: missing -h arguments." >&2
         echo "" >&2
         usage
     fi
 
     if ! getopt -T > /dev/null; then
         # GNU enhanced getopt is available
-        parsed_opts=$(getopt -o h:r: -l "hosts:resources:" -- "$@") || usage
+        parsed_opts=$(getopt -o h:r:n -l "hosts:,resources:,no-calico" -- "$@") || usage
     else
         # Original getopt is available
-        parsed_opts=$(getopt h:r: "$@") || usage
+        parsed_opts=$(getopt h:r:n "$@") || usage
     fi
 
     eval "set -- $parsed_opts"
@@ -245,6 +279,10 @@ main(){
                 RESOURCES_FILE="${1}"
                 shift
                 ;;
+            -n | --no-calico)
+                CALICO=false
+                shift
+                ;;
             --)
                 shift
                 break
@@ -256,14 +294,6 @@ main(){
     if [[ ! -f ${HOSTS:-} ]]
     then
         echo "ERROR: file not found: ${HOSTS:-}" >&2
-        echo "" >&2
-        usage
-    fi
-
-    # Check for configuration file
-    if [[ ! -f ${RESOURCES_FILE:-} ]]
-    then
-        echo "ERROR: file not found: ${RESOURCES_FILE:-}" >&2
         echo "" >&2
         usage
     fi
@@ -297,11 +327,32 @@ main(){
     # unset variable are considered error again
     set -u
 
-    ## Deploy each resource defined in the ${RESOURCES_FILE} except calico
-    sed -i -e 's/^calico/#calico/' "${RESOURCES_FILE}"
-    export KUBECONFIG
-    bash "${SCRIPT_DIR}"/deploy-resources.sh "${RESOURCES_FILE}"
-    sed -i -e 's/^#calico/calico/' "${RESOURCES_FILE}"
+    ## Deploy resources if a resource file is passed
+    # Check for configuration file
+    if [[ -n "${RESOURCES_FILE:-}" ]]
+    then
+        if [[ ! -f "${RESOURCES_FILE:-}" ]]
+        then
+            echo "ERROR: resource file not found: ${RESOURCES_FILE:-}" >&2
+            echo "" >&2
+            usage
+        fi
+
+        ## Deploy each resource defined in the ${RESOURCES_FILE} except calico
+        ## Comment calico in the resource file if present
+        if grep "calico" "${RESOURCES_FILE}" >/dev/null 2>&1
+        then
+            sed -i -e 's/^calico/#calico/' "${RESOURCES_FILE}"
+        fi
+
+        export KUBECONFIG
+        bash "${SCRIPT_DIR}"/deploy-resources.sh -r "${RESOURCES_FILE}"
+
+        if grep "calico" "${RESOURCES_FILE}" >/dev/null 2>&1
+        then
+            sed -i -e 's/#calico/^calico/' "${RESOURCES_FILE}"
+        fi
+    fi
 }
 
 main "${@}"
