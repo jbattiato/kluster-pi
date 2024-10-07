@@ -39,3 +39,86 @@ kubectl -n longhorn-system create secret generic basic-auth --from-file=resource
 kubectl -n longhorn-system apply -f resources/longhorn/longhorn-ingress.yaml
 ```
 
+## TopoLVM
+
+[https://github.com/topolvm/topolvm](https://github.com/topolvm/topolvm)
+
+The procedure for this resource can't be automated in the same way as the other at the moment, because it requires some prerequisites.
+These prerequisites must either performed manually, executing the following procedure, or by running the `resource/topolvm/prepare_node.sh` script.
+Once the requirements are respected, topoLVM can be installed using its `install.sh` script or the `scripts/deploy-resources.sh` script.
+
+### Requirements
+
+These steps are required before the installation of topoLVM.
+
+#### Node Setup
+
+1. lvm version 2.02.163 or later:
+
+``` bash
+apt install lvm2
+```
+
+2. a partition dedicated as a Physical Volume:
+
+``` bash
+pvcreate /dev/sda3
+```
+
+3. a Volume Group called `myvg1` created from the previous PV:
+
+``` bash
+vgcreate myvg1 /dev/sda3
+```
+
+#### Kubernetes Setup
+
+4. a cert manager deployment:
+
+``` bash
+export KUBECONFIG=${HOME}/.kube/kluster-pi-config
+bash scripts/deploy-resources.sh -r cert-manager -v "v1.15.1"
+```
+
+5. a namespace for topoLVM:
+
+``` bash
+kubectl create ns topolvm-system
+```
+
+6. labels on namespaces:
+[https://github.com/topolvm/topolvm/blob/main/docs/getting-started.md](https://github.com/topolvm/topolvm/blob/main/docs/getting-started.md)
+
+``` bash
+kubectl label namespace topolvm-system topolvm.io/webhook=ignore
+kubectl label namespace kube-system topolvm.io/webhook=ignore
+```
+
+#### Helm Setup
+
+7. the topoLVM repository installed in Helm:
+
+``` bash
+helm repo add topolvm https://topolvm.github.io/topolvm
+```
+
+8. the Helm repo updated:
+
+``` bash
+helm repo update
+```
+
+### Install topoLVM
+
+9. install through Helm:
+
+``` bash
+helm install --namespace=topolvm-system topolvm topolvm/topolvm
+```
+
+10. Verify the installation:
+
+``` bash
+kubectl get pod -n topolvm-system
+```
+

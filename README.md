@@ -14,10 +14,10 @@ The final product is a K3S cluster with [`etcd` in HA](https://docs.k3s.io/datas
 K3S will use:
 
 * [calico](https://docs.k3s.io/networking/basic-network-options?cni=Calico#custom-cni) as CNI
-* [Metallb](https://metallb.io/) as load balancer
-* [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) as ingress
-* optional [CSIs](docs/container-storage-interfaces.md)
-* optional [cert-manager](https://cert-manager.io/)
+* (optional) [Metallb](https://metallb.io/) as load balancer
+* (optional) [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) as ingress
+* (optional) [CSIs](docs/container-storage-interfaces.md)
+* (optional) [cert-manager](https://cert-manager.io/)
 
 ## Purpose
 
@@ -119,6 +119,7 @@ Follow the procedure in the `docs/` directory:
 ### Storage
 
 * [Longhorn on GH](https://github.com/longhorn/longhorn)
+* [TopoLVM on GH](https://github.com/topolvm/topolvm)
 
 ### Ingress
 
