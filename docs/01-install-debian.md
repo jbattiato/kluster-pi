@@ -36,7 +36,7 @@ WARNING: THE FOLLOWING COMMAND IS REALLY DANGEROUS!
 
 Insert the SD card in the USB card reader on host but don't mount it.
 
-Write it to the SD card:
+Write the image into the SD card:
 
 ``` bash
 sudo dd if=./20210210_raspi_4_buster.img.xz of=/dev/sdX

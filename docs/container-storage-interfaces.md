@@ -6,10 +6,10 @@ In this section we cover some of the available CSIs for Kubernetes that have bee
 
 [https://longhorn.io/](https://longhorn.io/)
 
-based on the official documentation, the new longhorn CLI `longhornctl` takes care of checking the dependencies
-and also installing them if missing.
+Based on the official documentation, the new longhorn CLI `longhornctl` takes care of checking for preresquisites
+and installing dependencies if missing.
 
-Here are the instruction to perform the installation procedure by hands, or you can find the usual `resource/longhorn/install.sh`
+Here are the instructions to perform the installation procedure by hands, or you can exec the practical `resource/longhorn/install.sh`
 script which automates it.
 
 ``` bash
@@ -20,9 +20,11 @@ curl -sSfL -o longhornctl https://github.com/longhorn/cli/releases/download/"${V
 
 chmod +x longhornctl
 
-./longhornctl install preflight
 # Check
 ./longhornctl check preflight
+
+# and if everything is OK
+./longhornctl install preflight
 
 # Deploy
 kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/"${VERSION}"/deploy/longhorn.yaml
