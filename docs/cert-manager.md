@@ -5,6 +5,6 @@
 There are two ways to install it:
 
 1. using the YAML manifest
-2. throught Helm 
+2. through Helm
 
 The `resource/cert-manager/install.sh` contains both, for reference, but only the YAML manifest is active.

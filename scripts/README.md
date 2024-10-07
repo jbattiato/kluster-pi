@@ -3,11 +3,11 @@
 | name | automates | runs on |  options  | values | arguments | env variables |
 -------|----------|--------|-----------|--------|-----------|----------------|
 | `install-sd.sh` | [Install Debian for RPi](../docs/01-install-debian.md) | user local machine | `-d` `-h` `-k` `-i`* | block device, remote host, ssh key, distro image | | `TRACE` (debug) |
-| `clone-root-to-ssd.sh` | [Clone SD image into SSD and mount it as root](../docs/02-clone-image-on-ssd.md) | user local machine | | | remote node address | `TARCE` (debug) |
-| `install-kluster.sh` | [Setup cluster installing k3s on each node](../docs/04-setup-k8s.md) | user local machine | `-h` `-r` `-n`* | remote host, resources file | | `TARCE` (debug) |
-| `deploy-resources.sh` | deployment of resources into k3s | user local machine | `-r` `-h`* `-v`* | a resource or a resources file, remote host, version | | `TARCE` (debug) |
+| `clone-root-to-ssd.sh` | [Clone SD image into SSD and mount it as root](../docs/02-clone-image-on-ssd.md) | user local machine | | | remote node address | `TRACE` (debug) |
+| `install-kluster.sh` | [Setup cluster installing k3s on each node](../docs/04-setup-k8s.md) | user local machine | `-h` `-r` `-n`* | remote host, resources file | | `TRACE` (debug) |
+| `deploy-resources.sh` | deployment of resources into k3s | user local machine | `-r` `-h`* `-v`* | a resource or a resources file, remote host, version | | `TRACE` (debug) |
 | `intall-k3s-master.sh` | initialization and joining of the k3s masters | remote node | `-t` `-m`* `-n`* | k3s token, first master address | command: `init` or `join` | `TRACE` (debug), `K3S_KUBE_CONFIG` |
-| `join-k3s-agent.sh` | joining of agent to the k3s cluster  | remote node | `-t` `-m` | k3s token, first master address | | `TARCE` (debug) |
+| `join-k3s-agent.sh` | joining of agent to the k3s cluster  | remote node | `-t` `-m` | k3s token, first master address | | `TRACE` (debug) |
 | `enable-fstrim.sh` | [Prepare RPi nodes installing and configuring packages](docs/03-preparing-nodes.md) | user local machine | `-h` | remote host or a hosts file | | `TRACE` (debug) |
 
 `*` : optional.
@@ -75,6 +75,8 @@ cert-manager:v1.15.3
 longhorn:v1.7.1
 cloudnative-pg:1.24.0
 ```
+
+IMPORTANT: the order of the list must respect the top-down approach, where the first elements are prerequisites of the successives following them.
 
 NOTE: `calico` is commented out because it must be installed only during the k3s cluster setup.
 
