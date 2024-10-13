@@ -70,6 +70,7 @@ Follow the procedure in the `docs/` directory:
 3. [Prepare RPi nodes installing and configuring packages](docs/03-preparing-nodes.md)
 4. [Setup cluster installing k3s on each node](docs/04-setup-k8s.md)
 5. [Install additional resources](docs/05-additional-resources.md)
+6. [Day 2 Operations](docs/06-day-2-operations.md)
 
 ## Scripts
 
