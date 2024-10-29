@@ -88,6 +88,12 @@ Follow the procedure in the `docs/` directory:
 * `join-k3s-agent.sh` - to install and deploy a new k3s agent to join the cluster
 * `enable-fstrim.sh` - to enable fstrim on target nodes where supported
 
+## Tests
+
+We are here to experiment and learn, so let's test things out!
+
+* [PostgreSQL Resiliency test](tests/pg-resiliency/README.md)
+
 ## Sources
 
 ### Raspberry Pi
