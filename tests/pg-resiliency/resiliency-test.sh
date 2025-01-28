@@ -61,7 +61,7 @@ kill_script(){
 force_delete_primary(){
     echo "Deleting ${PRIMARY} pod..."
     echo ""
-    kubectl delete pod "${PRIMARY}" --grace-period=0 --force >/dev/null 2>&1
+    kubectl delete pod "${PRIMARY}" --now >/dev/null 2>&1
 }
 
 cordon_node(){
