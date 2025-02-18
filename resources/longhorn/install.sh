@@ -36,7 +36,7 @@ chmod +x longhornctl
 kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/"${VERSION}"/deploy/longhorn.yaml
 
 # Create basic auth secret to access UI
-USER="admin" ; PASSWORD=$(pwgen 8 1) ; echo "${USER}:$(openssl passwd -stdin -apr1 <<< "${PASSWORD}")" >> resources/longhorn/auth
+USER="admin" ; PASSWORD=$(pwgen 8 1) ; echo "${USER}:$(openssl passwd -stdin -apr1 <<< "${PASSWORD}")" > resources/longhorn/auth
 echo "${PASSWORD}" > resources/longhorn/password
 echo ""
 echo "The password to access Longhorn UI is: ${PASSWORD}"
@@ -46,5 +46,4 @@ kubectl -n longhorn-system create secret generic basic-auth --from-file=resource
 
 # Deploy ingress to allow access UI
 kubectl -n longhorn-system apply -f resources/longhorn/longhorn-ingress.yaml
-
 
