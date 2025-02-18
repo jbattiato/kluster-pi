@@ -350,7 +350,7 @@ main(){
 
         if grep "calico" "${RESOURCES_FILE}" >/dev/null 2>&1
         then
-            sed -i -e 's/#calico/^calico/' "${RESOURCES_FILE}"
+            sed -i -e 's/#calico/calico/' "${RESOURCES_FILE}"
         fi
     fi
 }
